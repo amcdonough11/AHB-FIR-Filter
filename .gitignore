@@ -1,0 +1,16 @@
+# build trees
+tmp/
+out/
+waves/
+build/
+**/*-modelsim/
+**/work/
+source/ahb_model.sv
+
+# waves & sim artifacts
+*.vcd
+*.wlf
+*.core
+transcript
+vsim.wlf
+modelsim.ini
