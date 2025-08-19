@@ -10,7 +10,7 @@ This is a design for a 4-point FIR Filter interfaced with an AHB subordinate. Th
 
 ## Operation
 
-<img width="500" height="198" alt="image" src="https://github.com/user-attachments/assets/3a47c0db-5eda-46bd-a502-fd80a7a9ded7" />
+<img width="500" height="198" alt="image" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/FIR_Filter.svg/330px-FIR_Filter.svg.png" />
 
 *From [Wikipedia - Finite Impulse Response](https://en.wikipedia.org/wiki/Finite_impulse_response)*
 
@@ -18,7 +18,7 @@ This figure captures the flow of an FIR filter operation. Each new input sample 
 
 This operation follows the discrete convolution equation represented by: 
 
-<img width="550" height="240" alt="image" src="https://github.com/user-attachments/assets/7d998c03-7729-4383-9c44-883825030b3b" />
+<img width="550" height="240" alt="image" src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c43ba6c329a471401e87fe17c6130d801602ffdf" />
 
 *From [Wikipedia - Finite Impulse Response](https://en.wikipedia.org/wiki/Finite_impulse_response)*
 
