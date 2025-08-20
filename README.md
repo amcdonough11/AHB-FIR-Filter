@@ -113,6 +113,10 @@ This design is a 4-point FIR Filter, meaning 4 coefficients and 4 delayed input 
 ---
 
 ## Diagrams 
+FIR Filter Block Diagram: 
+<img width="896" height="446" alt="image" src="https://github.com/user-attachments/assets/04b5d093-c1a6-4079-a615-7914bd3e2af8" />
+
+
 FIR Filter State Machine:
 <p aligh="center">
   <img width="1200" height="1800" alt="Screenshot 2025-08-07 173442" src="https://github.com/user-attachments/assets/367c117f-defa-43fc-bc6b-9c672d2e2b3e" />
