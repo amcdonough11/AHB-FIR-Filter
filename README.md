@@ -1,12 +1,13 @@
-# FIR-Filter
-AHB Finite Impulse Response (FIR) Filter Design
+# AHB-FIR-Filter
+An AMBA AHB-Lite 4-point FIR filter in SystemVerilog with programmable 16-bit coefficients, streamable sample input, and status/error reporting.
 
 ## Overview
 
-This is a design for a 4-point FIR Filter interfaced with an AHB subordinate. The design processes 16-bit input samples using 4 configurable 16-bit coefficients to produce a 16-bit filtered output, which can be accessed via the AHB bus. This is designed for discrete convolution in an AHB-based SoC. 
+This design integrates an **AHB-Lite subordinate** (slave) with a 4-point FIR filter core. Software writes four 16-bit coefficients over AHB, streams 16-bit input samples into a register, and reads the 16-bit filtered output. The subordinate supports 8-bit and 16-bit accesses, reports invalid accesses via `HRESP`, and exposes status (idle/busy/error) plus a *1k-sample complete* indicator.
 
-<img width="1200" height="400" alt="image" src="https://github.com/user-attachments/assets/bf8a5d37-8aad-457e-ab41-c38a2d5dbb48" />
-
+<p aligh="center">
+  <img width="1200" height="400" alt="image" src="https://github.com/user-attachments/assets/c77be979-2196-4744-8364-46423ddede99" />
+</p>
 
 ## Operation
 
@@ -24,41 +25,62 @@ This operation follows the discrete convolution equation represented by:
 
 This design is a 4-point FIR Filter, meaning 4 coefficients and 4 delayed input samples are used to compute each output. 
 
-## Structure 
+## Features
 
-- ahb_fir_filter.sv: Top-level module
+| Feature | Description |
+|---|---|
+| AHB-Lite Subordinate | Standard `HSEL/HADDR/HTRANS/HSIZE/HWRITE/HWDATA/HRDATA/HRESP` interface. No wait states (always ready). |
+| 4-Point FIR | 16-bit samples × four 16-bit programmable coefficients; discrete convolution \( y[n]=\sum_{k=0}^{3} b_k x[n-k] \). |
+| Coefficient Loader | Write four coefficient registers then **arm** via a control register; loader copies them into the datapath and auto-clears the arm bit. |
+| Sample Streaming | Write a sample to the **New Sample** register; the core latches, shifts the 4-deep sample window, and computes the output. |
+| Output Register | Read the 16-bit filtered result from the **Result** register. |
+| Status & Errors | Status shows IDLE/BUSY/ERROR. Arithmetic overflow is detected and reflected in Status; invalid addresses/sizes assert `HRESP=1`. |
+| 8/16-bit Access | Supports byte or half-word transfers (`HSIZE=000` or `001`); registers are even-aligned. |
+| 1k-Sample Tracker | Asserts a flag once **1000** samples have been processed. |
 
-- ahb_subordinate.sv: Manages AHB-Lite bus transactions and register access
+---
 
-- fir_filter.sv: Implements the FIR filter core
+## What I Did
+- Designed and implemented RTL in SystemVerilog for: `ahb_subordinate.sv`, `fir_filter.sv`, `coefficient_loader.sv`, `controller.sv`, `counter/flex_counter.sv`, `magnitude.sv`, `sync.sv`, and the top wrapper `ahb_fir_filter.sv`.
+  *(Bus model BFM (`ahb_model.sv`) and `datapath.sv` provided as a simulation helper.)*
+- Authored SystemVerilog testbenches (`tb_ahb_fir_filter.sv`) to verify configuration, coefficient loading, streaming, and error cases.
+- Produced block/FSM diagrams to document the subordinate, loader, and controller behavior.  
 
-- coefficient_loader.sv: Handles loading and clearing of FIR coefficients
 
-- controller.sv: Controls FIR filter operations via a state machine
+---
+## Repo Structure
+```
+├─ source/ # SystemVerilog RTL
+│ ├─ ahb_subordinate.sv # AHB register interface & decode
+│ ├─ ahb_fir_filter.sv # Top-level (AHB <-> FIR core)
+│ ├─ fir_filter.sv # 4-point FIR core
+│ ├─ coefficient_loader.sv
+│ ├─ controller.sv # Control FSM 
+│ ├─ datapath.sv # Multiplies, accumulator, overflow detect
+│ ├─ magnitude.sv # 17b->16b magnitude/pack
+│ ├─ counter.sv / flex_counter.sv
+│ └─ sync.sv
+├─ testbench/ # SystemVerilog testbenches & BFM
+│ ├─ tb_ahb_fir_filter.sv
+│ └─ ahb_model.sv # simple AHB-Lite BFM
+├─ waves/ # Sample VCD/GTKW
+├─ *.core # FuseSoC core files
+├─ Makefile
+└─ README.md
+```
 
-- counter.sv, flex_counter.sv: Track sample counts (up to 1000 samples)
+## Module Overview
 
-- magnitude.sv: Converts 17-bit filter output to 16-bit magnitude
+- **ahb_subordinate.sv** — AHB-Lite address decode & register file; maps reads/writes, enforces `HSIZE`, returns `HRESP=1` on invalid access.
+- **ahb_fir_filter.sv** — Top wrapper connecting AHB subordinate to coefficient loader, controller, datapath, and result/status.
+- **fir_filter.sv** — 4-point FIR: 4-deep sample shift-array, coefficient multiply-accumulate, overflow detect.
+- **coefficient_loader.sv** — Latches requested coefficients and updates active taps upon arm signal; auto-clears arm bit when done.
+- **controller.sv** — Simple FSM: IDLE → LOAD_COEFFS → RUN, coordinates sample accept/compute, status bits, and 1k counter.
+- **magnitude.sv** — Trims intermediate result (17-bit) to 16-bit magnitude as exposed on the bus.
+- **counter/flex_counter.sv** — Counter used for the 1000-sample completion flag.
+- **sync.sv** — 2-FF resynchronizers for any async inputs used in the TB.
 
-- sync.sv: Synchronizes asynchronous inputs
-
-- datapath.sv: Perform arithmetic operations (multiply, add, subtract) for the FIR filter
-
-## Features 
-
-- AHB-Lite Interface: Supports 8-bit and 16-bit transfers for configuration and data access
-
-- FIR Filter: Processes 16-bit samples with four programmable coefficients
-
-- Dynamic Coefficient Loading: Updates coefficients via AHB writes, triggered by a control register
-
-- Sample Tracking: Signals completion after processing 1000 samples (one_k_samples)
-
-- Error Handling: Detects arithmetic overflow, reported via the status register
-
-- Synchronous Design: Operates with a single clock (clk) and active-low reset (n_rst)
-
-## AHB Memory Map
+## AHB-Lite Register Map
 | HADDR | Size (Bytes) |Access| Description |
 |---|---|---|---|
 |0x0|2|Read Only| Status Reg: <br> 0 -> IDLE <br> 1 -> Busy <br> 2 -> Error |
@@ -72,34 +94,43 @@ This design is a 4-point FIR Filter, meaning 4 coefficients and 4 delayed input 
 
 - Others: Invalid addresses return hresp = 1 (error).
 
-## Usage
+## AHB-Lite Bus Signals
 
-1. Integration:
-  - Instantiate ahb_fir_filter in an AHB-based SoC.
-  
-  - Connect AHB signals to the system bus.
+| Signal | Description |
+|---|---|
+| `HCLK` | Bus clock (`clk`). |
+| `HRESETn` | Active-low reset (`n_rst`). |
+| `HSEL` | Subordinate select. |
+| `HTRANS[1:0]` | Transfer type. `NONSEQ` used for single transfers; `IDLE` cycles allowed. |
+| `HADDR[3:0]` | Address bus (even-aligned half-word map shown above). |
+| `HSIZE[2:0]` | Transfer size: `000`=8-bit, `001`=16-bit. Others treated as invalid (error). |
+| `HWRITE` | 0=Read, 1=Write. |
+| `HWDATA[15:0]` | Write data. |
+| `HRDATA[15:0]` | Read data. |
+| `HRESP` | 0=OK, 1=ERROR (invalid addr/size or blocked op). |
+| `HREADY` | **Not used** (fixed ready, single-cycle data phase). |
+| `HBURST/HPROT/HPSELx` | Not used. Single-beat transfers only. |
 
-2. Configuration:
-  - Write coefficients to 0x6-0xD (F0-F3, e.g., {1, 2, 3, 4}).
-  
-  - Write 0x1 to 0xE to trigger coefficient loading.
-  
-  - Write samples to 0x4-0x5 to set sample_data and assert data_ready.
-
-3. Operation:
-  - Read filtered output from 0x2-0x3.
-  
-  - Monitor status at 0x0-0x1 for errors or operation status.
-  
-  - Check one_k_samples for 1000-sample completion.
+---
 
 ## Diagrams 
-AHB Subordinate RTL Diagram:
-![ahb_sub_rtl](https://github.com/user-attachments/assets/8db44e8f-a272-4b72-9474-fbc456b3805a)
 FIR Filter State Machine:
-![fir_std](https://github.com/user-attachments/assets/f184c5d5-46d7-4427-a224-4e77442c97ee)
-Coefficient Loader State Machine:
+<p aligh="center">
+  <img width="1200" height="1800" alt="Screenshot 2025-08-07 173442" src="https://github.com/user-attachments/assets/367c117f-defa-43fc-bc6b-9c672d2e2b3e" />
+</p>
 
-<img width="600" height="900" alt="image" src="https://github.com/user-attachments/assets/e705024b-f184-4997-81bd-e790207c4f15" />
+
+Coefficient Loader State Machine:
+<p aligh="center">
+  <img width="600" height="900" alt="Screenshot 2025-08-07 173442" src="https://github.com/user-attachments/assets/1bdd137d-0dee-406f-ac37-aea82f1d0787" />
+</p>
+
+## Verification
+
+## Design Notes & Assumptions
+
+## Synthesis Results
+
+
 
 
