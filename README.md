@@ -23,7 +23,23 @@ This operation follows the discrete convolution equation represented by:
 
 *From [Wikipedia - Finite Impulse Response](https://en.wikipedia.org/wiki/Finite_impulse_response)*
 
-This design is a 4-point FIR Filter, meaning 4 coefficients and 4 delayed input samples are used to compute each output. 
+This design is a 4-point FIR Filter, represented by this equation: 
+
+$$\ y[n] = [
+ (s_1 \cdot f_0) + (s_2 \cdot f_1) + (s_3 \cdot f_2) + (s_4 \cdot f_3)
+\]$$
+
+where:
+- y[n] is the output each cycle
+- $$s_x$$ are the four most-recent samples (e.g., $$\(s_1=x[n]\)$$, $$\(s_2=x[n-1]\)$$, $$\(s_3=x[n-2]\)$$, $$\(s_4=x[n-3]\))$$
+- $$f_x$$ are the corresponding filter coefficients
+
+Equivalent standard convolution form:
+
+$$
+y[n] = \sum_{k=0}^{3} h[k]\cdot x[n-k]
+\text{ where } h[k] == f_k \text{ and } x[n-k] == s_{k+1}
+$$
 
 ## Features
 
