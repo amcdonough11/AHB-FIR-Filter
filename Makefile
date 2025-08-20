@@ -3,14 +3,14 @@ VERSION ?= 1.0.0
 LIB ?= FIR_FILTER
 TARGET ?= sim
 WAVE_FILE_NAME ?= sim.vcd
-TOOL ?= verilator # or modelsim
+TOOL ?= verilator# or modelsim
 GTKW ?= waves/$*.gtkw
 BUILD = tmp/build
 SYN_TOOL = design_compiler
 MS_SIM_MAKE_ROOT = tmp/build/337mg054_APB_UART_apb_uart_rx_1.0.0/sim-modelsim/
 MS_SIM_MAKE_ROOT = tmp/build/337mg054_APB_UART_apb_uart_rx_1.0.0/syn_sim-modelsim/
 
-WAVE_FILE = build/$(USER)_$(LIB)_$*_$(VERSION)/$(TARGET)-$(TOOL)/$(WAVE_FILE_NAME)
+WAVE_FILE = tmp/build/$(USER)_$(LIB)_$*_$(VERSION)/$(TARGET)-$(TOOL)/$(WAVE_FILE_NAME)
 
 %_sim:
 	@echo "Running FuseSoC for '$*'"
@@ -23,7 +23,7 @@ WAVE_FILE = build/$(USER)_$(LIB)_$*_$(VERSION)/$(TARGET)-$(TOOL)/$(WAVE_FILE_NAM
 
 %_gtkwaves:
 	@echo "Running FuseSoC for '$*'"
-	fusesoc --verbose run --target=$(TARGET) $(USER):$(LIB):$*:$(VERSION)
+	fusesoc --verbose --cores-root . run --build-root $(BUILD) --setup --build --run --target=$(TARGET) $(USER):$(LIB):$*:$(VERSION)
 
 	@echo "Looking for wave files"
 	@test -s "$(WAVE_FILE)" || { \

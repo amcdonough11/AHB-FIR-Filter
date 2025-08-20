@@ -1,6 +1,8 @@
 `timescale 1ns / 10ps
 
-module ahb_fir_filter (
+module ahb_fir_filter #(
+    parameter HIGH_PASS_FILTER = 0
+)(
     input logic clk,
     input logic n_rst,
     input logic hsel,
@@ -19,7 +21,7 @@ module ahb_fir_filter (
     ahb_subordinate sub (.clk(clk), .n_rst(n_rst), .sample_data(sample_data), .data_ready(data_ready), .new_coefficient_set(new_coefficient_set), .clear_coeff(clear_coeff), .coefficient_num(coefficient_num), 
     .fir_coefficient(fir_coefficient), .modwait(modwait), .fir_out(fir_out), .err(err), .hsel(hsel), .haddr(haddr), .hsize(hsize), .htrans(htrans), .hwrite(hwrite), .hwdata(hwdata), .hrdata(hrdata), .hresp(hresp));
 
-    fir_filter fir (.clk(clk), .n_rst(n_rst), .sample_data(sample_data), .fir_coefficient(fir_coefficient), .load_coeff(load_coeff), .data_ready(data_ready), .one_k_samples(), .modwait(modwait), .fir_out(fir_out), .err(err));
+    fir_filter #(HIGH_PASS_FILTER) fir (.clk(clk), .n_rst(n_rst), .sample_data(sample_data), .fir_coefficient(fir_coefficient), .load_coeff(load_coeff), .data_ready(data_ready), .one_k_samples(), .modwait(modwait), .fir_out(fir_out), .err(err));
 
     coefficient_loader coeff (.clk(clk), .n_rst(n_rst), .new_coefficient_set(new_coefficient_set), .modwait(modwait), .load_coeff(load_coeff), .coefficient_num(coefficient_num), .clear_coeff(clear_coeff));
 

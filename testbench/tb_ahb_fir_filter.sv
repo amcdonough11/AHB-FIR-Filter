@@ -139,25 +139,30 @@ module tb_ahb_fir_filter ();
     endtask
 
     task stream_samples;
-        input logic [15:0] samples[];
+        const ref logic [15:0] samples[8];
         input integer num_samples;
         begin
-            $display("%t: IGNORE ", $time,);
             for (int i = 0; i < num_samples; i++) begin
-                enqueue_transaction(1, 0, 4'h0, 0, 0, 1);
-                execute_transactions(1);
-                @(negedge clk);
-                while(hrdata != 0) begin
-                    enqueue_transaction(1, 0, 4'h0, 0, 0, 1);
-                    execute_transactions(1);
+                while(DUT.sub.status_reg != 0) begin
+                    $display("%t: Status Reg: %b", $time, DUT.sub.status_reg);
                     @(negedge clk);
                 end
-                $display("%t: STOP IGNORE ", $time,);
+                $display("%t: Sample: %d", $time, samples[i]);
                 enqueue_transaction(1, 1, 4'h4, samples[i], 0, 1);
                 execute_transactions(1);
-        end
+            end
+            for (int i = 0; i < 4; i++) begin
+                while(DUT.sub.status_reg != 0) begin
+                    $display("%t: Status Reg: %b", $time, DUT.sub.status_reg);
+                    @(negedge clk);
+                end
+                $display("%t: Sample: %d", $time, samples[i]);
+                enqueue_transaction(1, 1, 4'h4, 0, 0, 1);
+                execute_transactions(1);
+            end
         end
     endtask
+
 
     task power_on_reset;
     begin
@@ -236,9 +241,11 @@ module tb_ahb_fir_filter ();
     } test_vector_t;
 
     test_vector_t test0 = '{
-        coeffs: '{16'd20, 16'd45, 16'd24, 16'd15},
-        samples: '{16'd60000, 16'd34656, 16'd32245, 16'd48650, 16'd5121, 16'd61213, 16'd753, 16'd8334}
+        coeffs: '{16'h8000, 16'ha000, 16'hc000, 16'hFFFF},
+        samples: '{16'd00100, 16'd00200, 16'd00150, 16'd00101, 16'd04000, 16'd00900, 16'd00400, 16'd00001}
     };
+
+    logic [15:0] tv0_samples[8];
 
     initial begin
         n_rst = 1;
@@ -282,7 +289,8 @@ module tb_ahb_fir_filter ();
         set_coeff(test0.coeffs[0],test0.coeffs[1],test0.coeffs[2],test0.coeffs[3]);
 
         test_name = "set_sample_data test0";
-        stream_samples(test0.samples, 8);
+        for (int i = 0; i < 8; i++) tv0_samples[i] = test0.samples[i];
+        stream_samples(tv0_samples, 8);
 
         test_name = "hresp test";
         power_on_reset();
@@ -314,8 +322,6 @@ module tb_ahb_fir_filter ();
         enqueue_transaction(1, 1, 4'he, 1, 0, 0);
         enqueue_transaction(1, 0, 4'he, 1, 0, 0);
         execute_transactions(2);
-
-
 
         $finish;
     end

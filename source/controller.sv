@@ -1,6 +1,8 @@
 `timescale 1ns / 10ps
 
-module controller (
+module controller #(
+    parameter HIGH_PASS_FILTER = 0
+)(
     input logic clk,
     input logic n_rst,
     input logic dr,
@@ -33,11 +35,11 @@ typedef enum logic [5:0] {
     LOAD_S1,
     S1_MUL_F0,
     S2_MUL_F1,
-    S2_SUB_S1,
+    S2_ADD_S1,
     S3_MUL_F2,
     S3_ADD_S2,
     S4_MUL_F3,
-    S4_SUB_S3
+    S4_ADD_S3
 } state_t;
 
 state_t state, next_state;
@@ -119,10 +121,10 @@ always_comb begin
             next_modwait = (overflow) ? 0 : 1;
         end
         S2_MUL_F1: begin
-            next_state = overflow ? EIDLE : S2_SUB_S1;
+            next_state = overflow ? EIDLE : S2_ADD_S1;
             next_modwait = (overflow) ? 0 : 1;
         end
-        S2_SUB_S1: begin
+        S2_ADD_S1: begin
             next_state = overflow ? EIDLE : S3_MUL_F2;
             next_modwait = (overflow) ? 0 : 1;
         end
@@ -135,10 +137,10 @@ always_comb begin
             next_modwait = (overflow) ? 0 : 1;
         end
         S4_MUL_F3: begin
-            next_state = overflow ? EIDLE : S4_SUB_S3;
+            next_state = overflow ? EIDLE : S4_ADD_S3;
             next_modwait = (overflow) ? 0 : 1;
         end
-        S4_SUB_S3: begin
+        S4_ADD_S3: begin
             next_state = overflow ? EIDLE : IDLE;
             next_modwait = (overflow) ? 0 : 1;
         end
@@ -304,11 +306,11 @@ always_comb begin
             src2 = 6;
             dest = 9;
         end
-        S2_SUB_S1: begin 
+        S2_ADD_S1: begin 
             cnt_up = 0;
             clear = 0;
             err = 0;
-            op = 3'b101;
+            op = (HIGH_PASS_FILTER) ?  3'b101 : 3'b100;
             src1 = 0;
             src2 = 9;
             dest = 0;
@@ -340,11 +342,11 @@ always_comb begin
             src2 = 8;
             dest = 9;
         end
-        S4_SUB_S3: begin 
+        S4_ADD_S3: begin 
             cnt_up = 0;
             clear = 0;
             err = 0;
-            op = 3'b101;
+            op = (HIGH_PASS_FILTER) ?  3'b101 : 3'b100;
             src1 = 0;
             src2 = 9;
             dest = 0;
