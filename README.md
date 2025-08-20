@@ -130,6 +130,22 @@ Coefficient Loader State Machine:
 
 ## Verification
 
+**Loading Coefficients**
+
+<img width="1000" height="430" alt="image" src="https://github.com/user-attachments/assets/dc8f58d5-f680-4b97-9ca7-4b4ba768c63d" />
+
+ 1) Program Coefficient Values: Write values `1, 2, 3, 4` to `haddr` `0x6`, `0x8`, `0xA`, `0xC` (coefficients `F0..F3`).
+
+2) Verify writes: Read back `haddr` `0x6`, `0x8`, `0xA`, `0xC` to confirm coefficient values.
+
+3) Initiates Coefficient Loading: Write `1` to `haddr` `0xE` (New Coefficient Set Confirmation register) to request a load.
+
+4) Loader handoff: The Coefficient Loader samples `0xE = 1` and commands the FIR to latch the pending coefficients.
+
+5) Sequential load (busy): The FIR Filter loads `F0 → F3` one-by-one; `modwait` is asserted while the load is in progress.
+
+6) Completion check: During loading, read of `haddr` `0xE` (and/or Status) to monitor progress. After Coefficient Loader begins loading, `0xE` auto-clears to `0`, confirming the new coefficients are set.
+
 ## Design Notes & Assumptions
 
 ## Synthesis Results
