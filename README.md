@@ -153,9 +153,9 @@ Coefficient Loader State Machine:
 
 **Loading Coefficients**
 
-<img width="1000" height="430" alt="image" src="https://github.com/user-attachments/assets/dc8f58d5-f680-4b97-9ca7-4b4ba768c63d" />
+<img width="1000" height="430" alt="image" src="https://github.com/user-attachments/assets/46fbef5e-1200-4858-b420-39e719ff2e98" />
 
- 1) Program Coefficient Values: Write values `1, 2, 3, 4` to `haddr` `0x6`, `0x8`, `0xA`, `0xC` (coefficients `F0..F3`). *Note: Coeff written in as integers in this example, but value is expected as fixed point. *
+ 1) Program Coefficient Values: Write values `1, 1.25, 1.5, 2` to `haddr` `0x6`, `0x8`, `0xA`, `0xC` (coefficients `F0..F3`). [Coeff Calc](https://chummersone.github.io/qformat.html)
 
 2) Verify writes: Read back `haddr` `0x6`, `0x8`, `0xA`, `0xC` to confirm coefficient values.
 
@@ -166,6 +166,33 @@ Coefficient Loader State Machine:
 5) Sequential load (busy): The FIR Filter loads `F0 → F3` one-by-one; `modwait` is asserted while the load is in progress.
 
 6) Completion check: During loading, read of `haddr` `0xE` (and/or Status) to monitor progress. After Coefficient Loader begins loading, `0xE` auto-clears to `0`, confirming the new coefficients are set.
+
+**Streaming Samples**
+
+Streaming Sample Values: `{16'd00100, 16'd00200, 16'd00150, 16'd00101, 16'd04000, 16'd00900, 16'd00400, 16'd00001}`. 
+
+Coefficients from loading example above.
+
+First Sample (16'd00100):
+<img width="1000" height="430" alt="image" src="https://github.com/user-attachments/assets/0c479a04-b56b-4c36-b943-daadd533b321" />
+
+Final Sample (16'd00001):
+<img width="1000" height="430" alt="image" src="https://github.com/user-attachments/assets/d711ee40-2a5b-4e6e-b6d8-09938c65b3f3" />
+
+Final Output:
+<img width="1000" height="430" alt="image" src="https://github.com/user-attachments/assets/4e78abad-5ea1-485b-bc37-60b30eb10926" />
+
+Expected Values:
+
+<img width="500" height="500" alt="image" src="https://github.com/user-attachments/assets/91657c4d-9a58-4fd7-9dc2-7e8dc0ad0096" />
+
+*From [Rapid Tables](https://www.rapidtables.com/calc/math/convolution-calculator.html)*
+
+Result Reg Values: `{16'd00100, 16'd00325, 16'd00550, 16'd00787, 16'd04750, 16'd06350, 16'd07726, 16'd09850, 16'd02400, 16'd00800, 16'd00001}`
+
+1) Stream Samples: Each sample is written into the New Sample Reg (`0x4`) when Status Reg (`0x0`) is IDLE (`0`).
+2) Compute:  The FIR grabs the new sample, asserts BUSY, performs the MAC over the 4-deep history, and produces new Result (`0x2`).
+3) Read and Continue: When Status returns to IDLE, read Result Reg (`0x2`) and write the next sample.
 
 ## Synthesis Results
 
