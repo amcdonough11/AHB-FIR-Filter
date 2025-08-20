@@ -147,7 +147,10 @@ Coefficient Loader State Machine:
 
 ## Design Notes & Assumptions
 - Samples and FIR output are 16 bit unsigned int values (0…65,535). Coefficents are UQ1.15 fixed point values ([0,2.0)). Additionally, the datapath MUL computes ( $$S_x \cdot 𝑓_x ) ≫ 15 $$ and returns a 16-bit unsigned result.
--  
+- Overflow Error results from ALU operation exceeding 16 bit limit (0…65,535). Status Reg will be become `0xd256`, indicating an error.
+- Reading or writing to an invalid address with raise `HRESP`.
+- FIR Filter Sync are only needed when inputs are asynchronous and are not used with AHB-Lite interface.
+- FIR Filter has configurable High Pass Filter operation represented by $$y[n] = [(s_1 \cdot f_0) - (s_2 \cdot f_1) + (s_3 \cdot f_2) - (s_4 \cdot f_3)]$$. This can be accessed by setting parameter `HIGH_PASS_FILTER == 1`. Default is `HIGH_PASS_FILTER == 0`.
 
 ## Verification
 
