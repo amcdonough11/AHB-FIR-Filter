@@ -11,6 +11,11 @@ module tb_ahb_fir_filter ();
     logic [1:0] htrans;
     logic [15:0] hwdata, hrdata;
 
+    initial begin
+        $dumpfile("sim.vcd");
+        $dumpvars(0, tb_ahb_fir_filter);
+    end
+
     // clockgen
     always begin
         clk = 0;
@@ -44,6 +49,7 @@ module tb_ahb_fir_filter ();
     logic enable_transactions;
     integer current_transaction_num;
     logic current_transaction_error;
+    logic [2:0] temp_hsize;
 
     ahb_model BFM (.clk(clk),
         // Testing setup signals
@@ -63,12 +69,14 @@ module tb_ahb_fir_filter ();
         .hsel(hsel),
         .htrans(htrans),
         .haddr(haddr),
-        .hsize(hsize),
+        .hsize(temp_hsize),
         .hwrite(hwrite),
         .hwdata(hwdata),
         .hrdata(hrdata),
         .hresp(hresp)
     );
+
+    assign hsize = temp_hsize[0];
 
     ahb_fir_filter DUT (.clk(clk), .n_rst(n_rst), .hsel(hsel), .haddr(haddr), .hsize(hsize), .htrans(htrans), .hwrite(hwrite), .hwdata(hwdata), .hrdata(hrdata), .hresp(hresp));
 
@@ -209,9 +217,9 @@ module tb_ahb_fir_filter ();
 
     task set_sample_data;
         input logic [15:0] t_hwdata;
-        input integer num_samples;
+        input logic [15:0] num_samples;
     begin
-        integer i;
+        logic [15:0] i;
         for(i = 0; i < num_samples; i = i + 1) begin
             enqueue_transaction(1, 1, 4, t_hwdata + i, 0, 1);
             execute_transactions(1);

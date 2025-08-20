@@ -154,7 +154,6 @@ always_comb begin
         IDLE: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 0;
             err = 0;
             op = 3'b0;
             src1 = 0;
@@ -164,7 +163,6 @@ always_comb begin
         EIDLE: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 0;
             err = 1;
             op = 3'b0;
             src1 = 0;
@@ -174,7 +172,6 @@ always_comb begin
         LOAD_F0: begin 
             cnt_up = 0;
             clear = 1;
-            //modwait = 1;
             err = 0;
             op = 3'b011;
             src1 = 0;
@@ -184,7 +181,6 @@ always_comb begin
         WAIT_F0: begin 
             cnt_up = 0;
             clear = 1;
-            //modwait = 0;
             err = 0;
             op = 3'b0;
             src1 = 0;
@@ -194,7 +190,6 @@ always_comb begin
         LOAD_F1: begin 
             cnt_up = 0;
             clear = 1;
-            //modwait = 1;
             err = 0;
             op = 3'b011;
             src1 = 0;
@@ -204,7 +199,6 @@ always_comb begin
         WAIT_F1: begin 
             cnt_up = 0;
             clear = 1;
-            //modwait = 0;
             err = 0;
             op = 3'b0;
             src1 = 0;
@@ -214,7 +208,6 @@ always_comb begin
         LOAD_F2: begin 
             cnt_up = 0;
             clear = 1;
-            //modwait = 1;
             err = 0;
             op = 3'b011;
             src1 = 0;
@@ -224,7 +217,6 @@ always_comb begin
         WAIT_F2: begin 
             cnt_up = 0;
             clear = 1;
-            //modwait = 0;
             err = 0;
             op = 3'b0;
             src1 = 0;
@@ -234,7 +226,6 @@ always_comb begin
         LOAD_F3: begin 
             cnt_up = 0;
             clear = 1;
-            //modwait = 1;
             err = 0;
             op = 3'b011;
             src1 = 0;
@@ -244,7 +235,6 @@ always_comb begin
         CHECK_DR1: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b010;
             src1 = 0;
@@ -254,7 +244,6 @@ always_comb begin
         CLEAR_R0: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b101;
             src1 = 0;
@@ -264,7 +253,6 @@ always_comb begin
         S3_TO_S4: begin 
             cnt_up = 1;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b001;
             src1 = 3;
@@ -274,7 +262,6 @@ always_comb begin
         S2_TO_S3: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b001;
             src1 = 2;
@@ -284,7 +271,6 @@ always_comb begin
         S1_TO_S2: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b001;
             src1 = 1;
@@ -294,7 +280,6 @@ always_comb begin
         LOAD_S1: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b001;
             src1 = 13;
@@ -304,7 +289,6 @@ always_comb begin
         S1_MUL_F0: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b110;
             src1 = 1;
@@ -314,7 +298,6 @@ always_comb begin
         S2_MUL_F1: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b110;
             src1 = 2;
@@ -324,7 +307,6 @@ always_comb begin
         S2_SUB_S1: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b101;
             src1 = 0;
@@ -334,7 +316,6 @@ always_comb begin
         S3_MUL_F2: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b110;
             src1 = 3;
@@ -344,7 +325,6 @@ always_comb begin
         S3_ADD_S2: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b100;
             src1 = 0;
@@ -354,7 +334,6 @@ always_comb begin
         S4_MUL_F3: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b110;
             src1 = 4;
@@ -364,7 +343,6 @@ always_comb begin
         S4_SUB_S3: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 1;
             err = 0;
             op = 3'b101;
             src1 = 0;
@@ -374,7 +352,6 @@ always_comb begin
         default: begin 
             cnt_up = 0;
             clear = 0;
-            //modwait = 0;
             err = 0;
             op = 3'b0;
             src1 = 0;

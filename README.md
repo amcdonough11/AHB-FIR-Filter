@@ -3,7 +3,7 @@ An AMBA AHB-Lite 4-point FIR filter in SystemVerilog with programmable 16-bit co
 
 ## Overview
 
-This design integrates an **AHB-Lite subordinate** (slave) with a 4-point FIR filter core. Software writes four 16-bit coefficients over AHB, streams 16-bit input samples into a register, and reads the 16-bit filtered output. The subordinate supports 8-bit and 16-bit accesses, reports invalid accesses via `HRESP`, and exposes status (idle/busy/error) plus a *1k-sample complete* indicator.
+This design integrates an **AHB-Lite subordinate** (slave) with a 4-point FIR filter core. Software writes four 16-bit coefficients over AHB, streams 16-bit input samples into a register, and reads the 16-bit filtered output. The subordinate supports 8-bit and 16-bit accesses, reports invalid accesses via `HRESP`, and exposes status (idle/busy/error).
 
 <p aligh="center">
   <img width="1200" height="400" alt="image" src="https://github.com/user-attachments/assets/c77be979-2196-4744-8364-46423ddede99" />
@@ -36,7 +36,6 @@ This design is a 4-point FIR Filter, meaning 4 coefficients and 4 delayed input 
 | Output Register | Read the 16-bit filtered result from the **Result** register. |
 | Status & Errors | Status shows IDLE/BUSY/ERROR. Arithmetic overflow is detected and reflected in Status; invalid addresses/sizes assert `HRESP=1`. |
 | 8/16-bit Access | Supports byte or half-word transfers (`HSIZE=000` or `001`); registers are even-aligned. |
-| 1k-Sample Tracker | Asserts a flag once **1000** samples have been processed. |
 
 ---
 

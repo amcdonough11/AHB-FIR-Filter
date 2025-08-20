@@ -6,6 +6,11 @@ build/
 **/*-modelsim/
 **/work/
 source/ahb_model.sv
+source/alu.sv
+source/datapath_decode.sv
+source/datapath.sv
+source/flex_sreg.sv
+source/register_file.sv
 
 # waves & sim artifacts
 *.vcd
