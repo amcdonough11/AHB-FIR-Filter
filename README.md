@@ -46,10 +46,10 @@ $$
 | Feature | Description |
 |---|---|
 | AHB-Lite Subordinate | Standard `HSEL/HADDR/HTRANS/HSIZE/HWRITE/HWDATA/HRDATA/HRESP` interface. No wait states (always ready). |
-| 4-Point FIR | 16-bit samples × four 16-bit programmable coefficients; discrete convolution \( y[n]=\sum_{k=0}^{3} b_k x[n-k] \). |
+| 4-Point FIR | 16-bit unsigned samples × four 16-bit fixed point programmable coefficients. |
 | Coefficient Loader | Write four coefficient registers then **arm** via a control register; loader copies them into the datapath and auto-clears the arm bit. |
 | Sample Streaming | Write a sample to the **New Sample** register; the core latches, shifts the 4-deep sample window, and computes the output. |
-| Output Register | Read the 16-bit filtered result from the **Result** register. |
+| Output Register | Read the 16-bit unsigned filtered result from the **Result** register. |
 | Status & Errors | Status shows IDLE/BUSY/ERROR. Arithmetic overflow is detected and reflected in Status; invalid addresses/sizes assert `HRESP=1`. |
 | 8/16-bit Access | Supports byte or half-word transfers (`HSIZE=000` or `001`); registers are even-aligned. |
 
@@ -92,13 +92,14 @@ $$
 - **coefficient_loader.sv** — Latches requested coefficients and updates active taps upon arm signal; auto-clears arm bit when done.
 - **controller.sv** — Simple FSM: IDLE → LOAD_COEFFS → RUN, coordinates sample accept/compute, status bits, and 1k counter.
 - **magnitude.sv** — Trims intermediate result (17-bit) to 16-bit magnitude as exposed on the bus.
+- **datapath.sv** — Contains ALU for copy, load, add, sub and mul operations and Data Registers for storing values. 
 - **counter/flex_counter.sv** — Counter used for the 1000-sample completion flag.
 - **sync.sv** — 2-FF resynchronizers for any async inputs used in the TB.
 
 ## AHB-Lite Register Map
 | HADDR | Size (Bytes) |Access| Description |
 |---|---|---|---|
-|0x0|2|Read Only| Status Reg: <br> 0 -> IDLE <br> 1 -> Busy <br> 2 -> Error |
+|0x0|2|Read Only| Status Reg: <br> 0 -> IDLE <br> 1 (bit 0) -> Busy <br> 256 (bit 8) -> Error |
 |0x2|2|Read Only| Result Reg|
 |0x4|2|Read/Write| New Sample Reg|
 |0x6|2|Read/Write| F0 Coeff Reg|
@@ -144,13 +145,17 @@ Coefficient Loader State Machine:
   <img width="600" height="900" alt="Screenshot 2025-08-07 173442" src="https://github.com/user-attachments/assets/1bdd137d-0dee-406f-ac37-aea82f1d0787" />
 </p>
 
+## Design Notes & Assumptions
+- Samples and FIR output are 16 bit unsigned int values (0…65,535). Coefficents are UQ1.15 fixed point values ([0,2.0)). Additionally, the datapath MUL computes ( $$S_x \cdot 𝑓_x ) ≫ 15 $$ and returns a 16-bit unsigned result.
+-  
+
 ## Verification
 
 **Loading Coefficients**
 
 <img width="1000" height="430" alt="image" src="https://github.com/user-attachments/assets/dc8f58d5-f680-4b97-9ca7-4b4ba768c63d" />
 
- 1) Program Coefficient Values: Write values `1, 2, 3, 4` to `haddr` `0x6`, `0x8`, `0xA`, `0xC` (coefficients `F0..F3`).
+ 1) Program Coefficient Values: Write values `1, 2, 3, 4` to `haddr` `0x6`, `0x8`, `0xA`, `0xC` (coefficients `F0..F3`). *Note: Coeff written in as integers in this example, but value is expected as fixed point. *
 
 2) Verify writes: Read back `haddr` `0x6`, `0x8`, `0xA`, `0xC` to confirm coefficient values.
 
@@ -161,8 +166,6 @@ Coefficient Loader State Machine:
 5) Sequential load (busy): The FIR Filter loads `F0 → F3` one-by-one; `modwait` is asserted while the load is in progress.
 
 6) Completion check: During loading, read of `haddr` `0xE` (and/or Status) to monitor progress. After Coefficient Loader begins loading, `0xE` auto-clears to `0`, confirming the new coefficients are set.
-
-## Design Notes & Assumptions
 
 ## Synthesis Results
 
