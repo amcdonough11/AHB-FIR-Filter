@@ -124,8 +124,8 @@ $$
 | `HWDATA[15:0]` | Write data. |
 | `HRDATA[15:0]` | Read data. |
 | `HRESP` | 0=OK, 1=ERROR (invalid addr/size or blocked op). |
-| `HREADY` | **Not used** (fixed ready, single-cycle data phase). |
-| `HBURST/HPROT/HPSELx` | Not used. Single-beat transfers only. |
+| `HREADY` | Not used (fixed ready, single-cycle data phase). |
+| `HBURST/HPROT` | Not used. Single-beat transfers only/No protection control implemented |
 
 ---
 
